@@ -174,7 +174,7 @@ uint32_t Node::GetChildrenVisits() const {
 }
 
 
-inline double GetCorrectionWeight(double weight) { return pow(fmax(0, weight - 4.0f), 0.3); }
+inline double GetCorrectionWeight(double weight) { return pow(fmax(0, weight - 4.0f), 0.7); }
 
 
 uint32_t Node::GetTotalVisits() const {
