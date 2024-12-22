@@ -231,6 +231,9 @@ class SearchParams {
   float GetCorrectionHistoryLambda() const { return kCorrectionHistoryLambda; }
 
 
+  int GetMateFinderDepth() const { return kMateFinderDepth; }
+
+
   // Search parameter IDs.
   static const OptionId kMiniBatchSizeId;
   static const OptionId kCpuctId;
@@ -349,6 +352,9 @@ class SearchParams {
   static const OptionId kCorrectionHistoryLambdaId;
 
 
+  static const OptionId kMateFinderDepthId;
+
+
 
  private:
   const OptionsDict& options_;
@@ -449,6 +455,8 @@ class SearchParams {
   const bool kUseCorrectionHistory;
   const float kCorrectionHistoryAlpha;
   const float kCorrectionHistoryLambda;
+
+  const int kMateFinderDepth;
 
 
 };

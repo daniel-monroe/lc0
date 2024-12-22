@@ -328,6 +328,8 @@ class SearchWorker {
     uint64_t hash;
     uint64_t ch_hash;
 
+    Move mating_move;
+
     LowNode* tt_low_node;
     LowNode* twin_low_node;
 
