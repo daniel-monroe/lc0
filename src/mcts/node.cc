@@ -483,6 +483,8 @@ void Node::IncrementNInFlight(uint32_t multivisit) {
 }
 
 void Node::SetE(float e) { e_ = e; }
+void Node::SetMatingMove(Move m) { mating_move_ = m; }
+
 
 void LowNode::ReleaseChildren(GCQueue* gc_queue) {
   for (auto child = GetChild()->get(); child != nullptr;

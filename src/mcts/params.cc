@@ -547,6 +547,9 @@ const OptionId SearchParams::kCorrectionHistoryAlphaId{
 const OptionId SearchParams::kCorrectionHistoryLambdaId{
     "correction-history-lambda", "CorrectionHistoryLambda",
     "Strength of correction history adjustment. [0,1]"};
+const OptionId SearchParams::kMateFinderDepthId{
+    "mate-finder-depth", "MateFinderDepth",
+    "Depth to do mate finding heuristic, <0 disables"};
 	
 
 void SearchParams::Populate(OptionsParser* options) {
@@ -687,6 +690,8 @@ void SearchParams::Populate(OptionsParser* options) {
   options->Add<BoolOption>(kUseCorrectionHistoryId) = true;
   options->Add<FloatOption>(kCorrectionHistoryAlphaId, 0, 1) = 1;
   options->Add<FloatOption>(kCorrectionHistoryLambdaId, 0, 1) = 0.3;
+  options->Add<IntOption>(kMateFinderDepthId, -1, 9) = 7;
+  
 
 
 	
@@ -855,6 +860,10 @@ SearchParams::SearchParams(const OptionsDict& options)
 
 
       kEasyEvalWeightDecay(options.Get<float>(kEasyEvalWeightDecayId)),
-      kSearchSpinBackoff(options_.Get<bool>(kSearchSpinBackoffId)) {}
+      kSearchSpinBackoff(options_.Get<bool>(kSearchSpinBackoffId)),
+
+      kMateFinderDepth(options.Get<int>(kMateFinderDepthId))
+      
+      {}
 
 }  // namespace lczero

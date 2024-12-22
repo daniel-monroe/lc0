@@ -308,6 +308,7 @@ class Node {
   float GetTotalWeight() const { return weight_; }
   float GetAvgWeight() const { return weight_ / n_; }
   float GetE() const { return e_; }
+  Move GetMatingMove() const { return mating_move_; }
   // return low node's v
   float GetV() const;
   float GetCHDelta() const;
@@ -315,6 +316,7 @@ class Node {
   uint64_t GetCHHash() const;
 
   void SetE(float e);
+  void SetMatingMove(Move m);
 
 
 
@@ -444,6 +446,8 @@ class Node {
   float m_ = 0.0f;
 	
 	float e_ = 0.0f;
+
+  Move mating_move_ = Move();
 
   // How many completed visits this node had.
   uint32_t n_ = 0;
