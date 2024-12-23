@@ -171,22 +171,22 @@ uint64_t PositionHistory::CHHash() const {
   Position last = Last();
   const Move last_move = LastMove();
   uint64_t position_hash = last.CHHash();
- // if (last_move) {
-	//	position_hash = HashCat(position_hash, last_move.Hash());
- //   char moved_piece = GetPieceAt(last.GetBoard(), last_move.to().row(),
- //                                             last_move.to().col());
- //   position_hash = HashCat(position_hash, moved_piece);
+  if (last_move) {
+		position_hash = HashCat(position_hash, last_move.Hash());
+    char moved_piece = GetPieceAt(last.GetBoard(), last_move.to().row(),
+                                              last_move.to().col());
+    position_hash = HashCat(position_hash, moved_piece);
 
- //   // we add whether it was a capture and what it captured if so
- //   // if a piece was not capture then GetPieceAt returns "\0"
- //   // if a piece was not captured then GetPieceAt returns "\0"
- //   if (positions_.size() > 1) {
- //     char captured_piece =
- //         GetPieceAt(positions_[positions_.size() - 2].GetBoard(),
- //                    last_move.to().row(), last_move.to().col());
- //     position_hash = HashCat(position_hash, captured_piece);
-	//	}
-	//}
+    /* we add whether it was a capture and what it captured if so
+     if a piece was not capture then GetPieceAt returns "\0"
+     if a piece was not captured then GetPieceAt returns "\0"*/
+    if (positions_.size() > 1) {
+      char captured_piece =
+          GetPieceAt(positions_[positions_.size() - 2].GetBoard(),
+                     last_move.to().row(), last_move.to().col());
+      position_hash = HashCat(position_hash, captured_piece);
+		}
+	}
 
   return position_hash;
 }
