@@ -665,7 +665,7 @@ void SearchParams::Populate(OptionsParser* options) {
   options->Add<FloatOption>(kCpuctUncertaintyMaxFactorId, 0.0f, 100.0f) = 1.7175437306867911f;
   options->Add<FloatOption>(kCpuctUncertaintyMinUncertaintyId, 0.0f, 1.0f) = 0.0f;
   options->Add<FloatOption>(kCpuctUncertaintyMaxUncertaintyId, 0.0f, 1.0f) =
-      0.347f;
+      0.2f;
   options->Add<BoolOption>(kJustFpuUncertaintyId) = false;
   options->Add<BoolOption>(kUseCpuctUncertaintyId) = false;
 
