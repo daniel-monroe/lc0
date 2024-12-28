@@ -700,7 +700,8 @@ std::vector<std::string> Search::GetVerboseStats(Node* node) const {
 
   oss << std::endl << "Low nodes: " << total_low_nodes_
        << " NN queries: " << total_nn_queries_
-       << " Playouts: " << total_playouts_ + initial_visits_ << std::endl;
+      << " Playouts: " << total_playouts_ + initial_visits_
+      << " Wasted NN queries: " << total_wasted_queries_ << std::endl;
 
 	print(&oss, "(U coeff: ", U_coeff, ") ", 15, 2);
 
@@ -2643,9 +2644,13 @@ void SearchWorker::DoBackupUpdateSingleNode(
       std::max(search_->max_depth_, (uint16_t)node_to_process.path.size());
   if (!node_to_process.is_tt_hit) {
     search_->total_low_nodes_++;
-  }
+  } 
   if (node_to_process.ShouldAddToInput()) {
     search_->total_nn_queries_++;
+    // if abs eval > 0.98 then this is a wasted query
+    if (std::abs(v) > 0.98) {
+			search_->total_wasted_queries_++;
+		}
   }
 }
 
