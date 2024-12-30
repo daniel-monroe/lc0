@@ -561,6 +561,8 @@ inline float ComputeExploreFactor(const SearchParams& params, float weight, floa
 	
   const float base_factor = ComputeExploreFactor(params, weight, is_root_node);
 
+  if (e > 0.25) base_factor *= 1.5f;
+
   const float extra_factor = ComputeCpuctFactor(params, weight, q, vs, e,
 																					  is_root_node);
 
