@@ -559,7 +559,7 @@ inline float ComputeExploreFactor(const SearchParams& params, float weight, bool
 inline float ComputeExploreFactor(const SearchParams& params, float weight, float q,
                           float vs, float e, bool is_root_node) {
 	
-  const float base_factor = ComputeExploreFactor(params, weight, is_root_node);
+  float base_factor = ComputeExploreFactor(params, weight, is_root_node);
 
   if (e > 0.25) base_factor *= 1.5f;
 
