@@ -925,6 +925,7 @@ void NodeTree::NonTTMaintenance() {
 
 bool NodeTree::TTGCSome(size_t count) {
   if (gc_queue_.empty()) return false;
+  return false;
 
   for (auto n = count > 0 ? std::min(count, gc_queue_.size())
                           : gc_queue_.size();
