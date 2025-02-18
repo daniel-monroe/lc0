@@ -1948,16 +1948,16 @@ void SearchWorker::PickNodesToExtendTask(
 
 
             // only boost visited nodes
-						if (visited[idx]) {
+            if (visited[idx]) {
               if (util >= min_policy_boost_util_t1) {
                 p = std::max(p, policy_boost_t1);
               }
               if (util >= min_policy_boost_util_t2) {
                 p = std::max(p, policy_boost_t2);
-              }
-              else if (check && p > 0.01f && p < 0.1f) {
+              } else if (check && p > 0.01f && p < 0.1f) {
                 p = std::min(p * 1.5f, 0.1f);
               }
+            }
 
             
             current_score[idx] =
