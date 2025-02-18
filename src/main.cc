@@ -70,7 +70,7 @@ int main(int argc, const char** argv) {
       // Benchmark mode.
       Benchmark benchmark;
       benchmark.Run();
-    } else if (CommandLine::ConsumeCommand("backendbench")) {
+    } else if (CommandLine::ConsumeCommand("bench")) {
       // Backend Benchmark mode.
       BackendBenchmark benchmark;
       benchmark.Run();
