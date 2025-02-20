@@ -2305,6 +2305,7 @@ void SearchWorker::FetchSingleNodeResult(NodeToProcess* node_to_process,
           search_->dag_->TTGetOrCreate(twin_low_node, node_to_process->hash);
       assert(tt_low_node != nullptr);
       tt_low_node->MakeTwin();
+      tt_low_node->SetTwinHash(twin_low_node.GetHash());
       node_to_process->tt_low_node = tt_low_node;
       
     } else {
@@ -2377,7 +2378,7 @@ void SearchWorker::DoBackupUpdate() {
 bool SearchWorker::MaybeAdjustForTerminalOrTransposition(
     Node* n, const LowNode* nl, float& v, float& d, float& m, float& vs,
     uint32_t& n_to_fix, float& weight_to_fix, float& v_delta, float& d_delta,
-    float& m_delta, float& vs_delta, bool& update_parent_bounds) const {
+    float& m_delta, float& vs_delta, bool& update_parent_bounds, LowNode* twin_ln) const {
   if (n->IsTerminal()) {
     v = n->GetWL();
     d = n->GetD();
@@ -2392,7 +2393,6 @@ bool SearchWorker::MaybeAdjustForTerminalOrTransposition(
       nl->IsTerminal()) {
     // Adapt information from low node to node by flipping Q sign, bounds,
     // result and incrementing m.
-    const LowNode* twin_ln = nl->GetTwin();
     if (!nl->IsTerminal() && twin_ln && twin_ln->GetWeight() > nl->GetWeight()) {
       v = -twin_ln->GetWL();
       d = twin_ln->GetD();
@@ -2545,7 +2545,8 @@ void SearchWorker::DoBackupUpdateSingleNode(
     m = 1;
   } else if (!MaybeAdjustForTerminalOrTransposition(
                  n, nl, v, d, m, vs, n_to_fix, weight_to_fix, v_delta, d_delta,
-                 m_delta, vs_delta, update_parent_bounds)) {
+                 m_delta, vs_delta, update_parent_bounds,
+                 search_->dag_->TTFind(nl->GetTwinHash()))) {
     // If there is nothing better, use original NN values adjusted for node.
     v = -nl->GetWL();
     d = nl->GetD();
@@ -2627,7 +2628,8 @@ void SearchWorker::DoBackupUpdateSingleNode(
 
     MaybeAdjustForTerminalOrTransposition(
         p, pl, v, d, m, vs, n_to_fix, weight_to_fix, v_delta, d_delta, m_delta,
-        vs_delta, update_parent_bounds);
+        vs_delta, update_parent_bounds,
+        search_->dag_->TTFind(pl->GetTwinHash()));
 
     // Update the stats.
     // Best move.
