@@ -524,6 +524,7 @@ class LowNode {
         lower_bound_(GameResult::BLACK_WON),
         upper_bound_(GameResult::WHITE_WON),
         is_transposition(false),
+        twin_ln_(&p),
         is_tt_(false) {
     assert(p.edges_);
     edges_ = std::make_unique<Edge[]>(num_edges_);
@@ -589,6 +590,7 @@ class LowNode {
   float GetWeight() const { return weight_; }
   float GetE() const { return e_; }
   float GetCHDelta() const { return ch_delta_; }
+  const LowNode* GetTwin() const { return twin_ln_; }
 
 
   uint64_t GetHash() const { return hash_; }
@@ -725,7 +727,6 @@ class LowNode {
 
   float ch_delta_ = 0.0f;
 
-
   // How many completed visits this node had.
   uint32_t n_ = 0;
 
@@ -749,6 +750,8 @@ class LowNode {
 
   // if the node was created as a twin it shouldn't be used for correction history
   bool is_twin_ = false;
+
+  const LowNode* twin_ln_ = nullptr;
 };
 
 // Check that LowNode still fits into an expected cache line size.

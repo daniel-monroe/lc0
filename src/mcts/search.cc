@@ -2392,10 +2392,21 @@ bool SearchWorker::MaybeAdjustForTerminalOrTransposition(
       nl->IsTerminal()) {
     // Adapt information from low node to node by flipping Q sign, bounds,
     // result and incrementing m.
-    v = -nl->GetWL();
-    d = nl->GetD();
-    m = nl->GetM() + 1;
-    vs = nl->GetVS();
+    const LowNode* twin_ln = nl->GetTwin();
+    if (!nl->IsTerminal() && twin_ln && twin_ln->GetWeight() > nl->GetWeight()) {
+      v = -twin_ln->GetWL();
+      d = twin_ln->GetD();
+      m = twin_ln->GetM() + 1;
+      vs = twin_ln->GetVS();
+    }
+    else {
+      v = -nl->GetWL();
+      d = nl->GetD();
+      m = nl->GetM() + 1;
+      vs = nl->GetVS();
+    }
+
+
     // When starting at or going through a transposition/terminal, make sure to
     // use the information it has already acquired.
     n_to_fix = n->GetN();
