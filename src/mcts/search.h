@@ -327,6 +327,7 @@ class SearchWorker {
     // Details that are filled in as we go.
     uint64_t hash;
     uint64_t ch_hash;
+    uint64_t eval_hash;
 
     LowNode* tt_low_node;
     LowNode* twin_low_node;
@@ -450,6 +451,8 @@ class SearchWorker {
       Node* n, const LowNode* nl, float& v, float& d, float& m, float& vs,
       uint32_t& n_to_fix, float& weight_to_fix, float& v_delta, float& d_delta,
       float& m_delta, float& vs_delta, bool& update_parent_bounds) const;
+
+  void UpdateEvalEntry(LowNode* ln);
   void DoBackupUpdateSingleNode(const NodeToProcess& node_to_process);
   // Returns whether a node's bounds were set based on its children.
   bool MaybeSetBounds(Node* p, float m, uint32_t* n_to_fix,

@@ -640,9 +640,15 @@ std::vector<std::string> Search::GetVerboseStats(Node* node) const {
               ") ", 6, 5);
         print(oss, "(CHN: ", cht_entry->numMembers, ") ", 6);
 
+        EvalEntry* eval_entry = low_node->GetEvalEntry();
 
-
+        if (eval_entry) {
+          print(oss, "(EVWL: ", -sign * eval_entry->wl, ") ", 6, 4);
+          print(oss, "(EVN: ", eval_entry->numMembers, ") ", 6);
+        }
       }
+
+
       print(oss, "(V: ", sign * n->GetV(), ") ", 6, 5);
 
 
@@ -2216,26 +2222,32 @@ void SearchWorker::ExtendNode(NodeToProcess& picked_node) {
   picked_node.ch_hash = search_->dag_->GetCHHash(history);
 
   auto tt_low_node = search_->dag_->TTFind(picked_node.hash);
+
+  int my_ply = picked_node.GetRule50Ply();
+  int bs;
+
+  if (my_ply <= 64) {
+    bs = 32;
+
+  } else if (my_ply <= 80) {
+    bs = 16;
+  } else if (my_ply <= 92) {
+    bs = 4;
+  } else {
+    bs = 1;
+  }
+  int ply_lo = my_ply / bs * bs;
+  int ply_hi = ply_lo + bs - 1;
+
+  picked_node.eval_hash = search_->dag_->GetHistoryHash(history, ply_lo);
+
+
   if (tt_low_node != nullptr) {
     picked_node.tt_low_node = tt_low_node;
     picked_node.is_tt_hit = true;
   } else {
     if (params_.GetMoveRuleBucketing()) {
-      int my_ply = picked_node.GetRule50Ply();
-      int bs;
 
-      if (my_ply <= 64) {
-        bs = 32;
-
-      } else if (my_ply <= 80) {
-        bs = 16;
-      } else if (my_ply <= 92) {
-        bs = 4;
-      } else {
-        bs = 1;
-      }
-      int ply_lo = my_ply / bs * bs;
-      int ply_hi = ply_lo + bs - 1;
 
       int max_visits = 0;
       LowNode* twin_low_node = nullptr;
@@ -2387,15 +2399,25 @@ bool SearchWorker::MaybeAdjustForTerminalOrTransposition(
     return true;
   }
 
+
   // Use information from transposition or a new terminal.
   if (nl->IsTransposition() ||
       nl->IsTerminal()) {
     // Adapt information from low node to node by flipping Q sign, bounds,
     // result and incrementing m.
-    v = -nl->GetWL();
-    d = nl->GetD();
-    m = nl->GetM() + 1;
-    vs = nl->GetVS();
+    EvalEntry* eval_entry = nl->GetEvalEntry();
+
+    if (eval_entry) {
+      v = -eval_entry->wl;
+      d = eval_entry->d;
+      m = eval_entry->m + 1;
+      vs = eval_entry->vs;
+    } else {
+      v = -nl->GetWL();
+      d = nl->GetD();
+      m = nl->GetM() + 1;
+      vs = nl->GetVS();
+    }
     // When starting at or going through a transposition/terminal, make sure to
     // use the information it has already acquired.
     n_to_fix = n->GetN();
@@ -2430,6 +2452,18 @@ bool SearchWorker::MaybeAdjustForTerminalOrTransposition(
 
   return false;
 }
+
+void SearchWorker::UpdateEvalEntry(LowNode* ln) REQUIRES(search_->nodes_mutex_) {
+  EvalEntry* eval_entry = ln->GetEvalEntry();
+  if (eval_entry && ln->GetWeight() > eval_entry->weight) {
+    eval_entry->weight = ln->GetWeight();
+    eval_entry->d = ln->GetD();
+    eval_entry->m = ln->GetM();
+    eval_entry->vs = ln->GetVS();
+    eval_entry->wl = ln->GetWL();
+  }
+}
+
 
 // Use information from terminal status or low node to update node and node's
 // parent low node and so on until the root is reached. Low node may become a
@@ -2475,6 +2509,10 @@ void SearchWorker::DoBackupUpdateSingleNode(
     ch_delta = 0;
     ntp_cht_entry = nullptr;
   }
+
+  EvalEntry* eval_entry =
+      search_->dag_->EvalGetOrCreate(node_to_process.eval_hash);
+
   float ch_lambda = params_.GetCorrectionHistoryLambda();
   float ch_alpha = params_.GetCorrectionHistoryAlpha();
 
@@ -2515,7 +2553,7 @@ void SearchWorker::DoBackupUpdateSingleNode(
     nl->FinalizeScoreUpdate(
        wl_corrected, nl->GetD(), nl->GetM(), nl->GetVS(),
         node_to_process.multivisit,
-        node_to_process.multivisit * avg_weight, false);
+        node_to_process.multivisit * avg_weight, false);  
 
         // for testing cht is per node
     if (ntp_cht_entry != nullptr && !nl->IsTwin()) {
@@ -2523,7 +2561,15 @@ void SearchWorker::DoBackupUpdateSingleNode(
       ntp_cht_entry->numMembers++;
     }
 
+    if (eval_entry != nullptr) {
+      nl->SetEvalEntry(eval_entry);
+      eval_entry->numMembers++;
+    
+    }
+
   }
+
+  UpdateEvalEntry(nl);
 
   if (nr >= 2) {
     // Three-fold itself has to be handled as a terminal to produce relevant
@@ -2541,6 +2587,7 @@ void SearchWorker::DoBackupUpdateSingleNode(
     m = nl->GetM() + 1;
     vs = nl->GetVS();
   }
+
 
   // Backup V value up to a root. After 1 visit, V = Q.
   for (auto it = path.crbegin(); it != path.crend();
@@ -2600,6 +2647,7 @@ void SearchWorker::DoBackupUpdateSingleNode(
                             weight_to_fix);
     }
 
+    UpdateEvalEntry(pl);
     
 
     bool old_update_parent_bounds = update_parent_bounds;
@@ -2650,6 +2698,7 @@ void SearchWorker::DoBackupUpdateSingleNode(
     search_->total_nn_queries_++;
   }
 }
+
 
 bool SearchWorker::MaybeSetBounds(Node* p, float m, uint32_t* n_to_fix,
                                   float* weight_to_fix, float* v_delta,

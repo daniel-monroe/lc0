@@ -199,6 +199,7 @@ uint64_t Node::GetHash() const {
 
 const Edge& LowNode::GetEdgeAt(uint16_t index) const { return edges_[index]; }
 
+
 std::string Node::DebugString() const {
   std::ostringstream oss;
   oss << " <Node> This:" << this << " LowNode:" << low_node_
@@ -875,9 +876,17 @@ LowNode* NodeTree::TTFind(uint64_t hash) {
   }
 }
 
+
+
 CorrHistEntry* NodeTree::CHTGetOrCreate(uint64_t hash) {
   auto [cht_iter, is_cht_miss] = cht_.insert({hash, std::make_unique<CorrHistEntry>()});
   return cht_iter->second.get();
+}
+
+EvalEntry* NodeTree::EvalGetOrCreate(uint64_t hash) {
+  auto [eval_iter, is_eval_miss] =
+      evals_.insert({hash, std::make_unique<EvalEntry>()});
+  return eval_iter->second.get();
 }
 
 std::pair<LowNode*, bool> NodeTree::TTGetOrCreate(uint64_t hash) {

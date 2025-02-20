@@ -232,6 +232,15 @@ struct CorrHistEntry {
   int numMembers = 0;
 };
 
+struct EvalEntry {
+  double d = 0;
+  double weight = 0;
+  double m = 0;
+  double vs = 0;
+  double wl = 0;
+  int numMembers = 0;
+};
+
 typedef std::pair<GameResult, GameResult> Bounds;
 
 enum class Terminal : uint8_t { NonTerminal, EndOfGame, Tablebase };
@@ -591,13 +600,17 @@ class LowNode {
   float GetCHDelta() const { return ch_delta_; }
 
 
+
+
   uint64_t GetHash() const { return hash_; }
   uint64_t GetCHHash() const { return ch_hash_; }
   CorrHistEntry* GetCHTEntry() const { return cht_entry_; }
 
   void SetCHTEntry(CorrHistEntry* cht_entry) { cht_entry_ = cht_entry; }
 
+  void SetEvalEntry(EvalEntry* eval_entry) { eval_entry_ = eval_entry; }
 
+  EvalEntry* GetEvalEntry() const { return eval_entry_; }
 
   // Returns whether the node is known to be draw/loss/win.
   bool IsTerminal() const { return terminal_type_ != Terminal::NonTerminal; }
@@ -705,6 +718,8 @@ class LowNode {
   uint64_t ch_hash_ = 0;
 
   CorrHistEntry* cht_entry_ = nullptr;
+
+  EvalEntry* eval_entry_ = nullptr;
 
 
 
@@ -1050,6 +1065,9 @@ class NodeTree {
   typedef absl::flat_hash_map<uint64_t, std::unique_ptr<CorrHistEntry>>
       CorrHistTable;
 
+    typedef absl::flat_hash_map<uint64_t, std::unique_ptr<EvalEntry>>
+      EvalTable;
+
   // Apply search params.
   NodeTree(const SearchParams& params)
       : hash_history_length_(params.GetCacheHistoryLength() + 1) {}
@@ -1085,6 +1103,9 @@ class NodeTree {
   std::pair<LowNode*, bool> TTGetOrCreate(uint64_t hash);
 
   CorrHistEntry* CHTGetOrCreate(uint64_t hash);
+
+  
+  EvalEntry* EvalGetOrCreate(uint64_t hash);
    
   std::pair<LowNode*, bool> TTGetOrCreate(const LowNode& p, uint64_t hash);
 
@@ -1133,6 +1154,9 @@ class NodeTree {
   TranspositionTable tt_;
 
   CorrHistTable cht_;
+
+  EvalTable evals_;
+
   // Collection of low nodes that are not fit for Transposition Table due to
   // noise or incomplete information.
   std::vector<std::unique_ptr<LowNode>> non_tt_;
