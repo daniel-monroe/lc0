@@ -511,7 +511,7 @@ class LowNode {
 
   // Only used when creating twin low nodes
   LowNode(const LowNode& p, const uint64_t hash)
-      : wl_(p.wl_),
+      : wl_(p.v_),
         v_(p.v_),
         hash_(hash),
         ch_hash_(p.ch_hash_),
