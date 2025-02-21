@@ -1939,22 +1939,22 @@ void SearchWorker::PickNodesToExtendTask(
 
             // a small hack to reduce policy on bad moves
             if (p < 0.01f) p /= 3;
-            //if (cur_iters[idx].GetWL(0.0f) < -0.995) p /= 5;
-            //else if (cur_iters[idx].GetWL(0.0f) < -0.99) p /= 3;
-            //else if (cur_iters[idx].GetWL(0.0f) < -0.95) p /= 2;
-
-
+            // if (cur_iters[idx].GetWL(0.0f) < -0.995) p /= 5;
+            // else if (cur_iters[idx].GetWL(0.0f) < -0.99) p /= 3;
+            // else if (cur_iters[idx].GetWL(0.0f) < -0.95) p /= 2;
 
             // only boost visited nodes
-						if (visited[idx]) {
+            if (visited[idx]) {
               if (util >= min_policy_boost_util_t1) {
                 p = std::max(p, policy_boost_t1);
               }
               if (util >= min_policy_boost_util_t2) {
                 p = std::max(p, policy_boost_t2);
               }
+            } else if (node->GetWL() < -0.9) {
+              p *= 1.5;
             }
-
+          
             
             current_score[idx] =
               p * puct_mult / (1 + weightstarted) + util;
