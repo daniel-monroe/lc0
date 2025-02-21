@@ -2239,7 +2239,7 @@ void SearchWorker::ExtendNode(NodeToProcess& picked_node) {
   int ply_lo = my_ply / bs * bs;
   int ply_hi = ply_lo + bs - 1;
 
-  picked_node.eval_hash = search_->dag_->GetHistoryHash(history, ply_lo);
+  picked_node.eval_hash = search_->dag_->GetHistoryHash(history, my_ply <= 80 ? my_ply / 8 * 8 : my_ply);
 
 
   if (tt_low_node != nullptr) {
