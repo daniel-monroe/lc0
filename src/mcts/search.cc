@@ -2569,7 +2569,8 @@ void SearchWorker::DoBackupUpdateSingleNode(
 
   }
 
-  UpdateEvalEntry(nl);
+  if (nl)
+    UpdateEvalEntry(nl);
 
   if (nr >= 2) {
     // Three-fold itself has to be handled as a terminal to produce relevant

@@ -234,7 +234,7 @@ struct CorrHistEntry {
 
 struct EvalEntry {
   double d = 0;
-  double weight = 0;
+  double weight = -1;
   double m = 0;
   double vs = 0;
   double wl = 0;
