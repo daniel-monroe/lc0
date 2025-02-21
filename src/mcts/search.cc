@@ -2407,7 +2407,7 @@ bool SearchWorker::MaybeAdjustForTerminalOrTransposition(
     // result and incrementing m.
     EvalEntry* eval_entry = nl->GetEvalEntry();
 
-    if (eval_entry) {
+    if (eval_entry && eval_entry->weight > nl->GetWeight()) {
       v = -eval_entry->wl;
       d = eval_entry->d;
       m = eval_entry->m + 1;
