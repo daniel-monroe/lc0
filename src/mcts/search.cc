@@ -645,6 +645,7 @@ std::vector<std::string> Search::GetVerboseStats(Node* node) const {
         if (eval_entry) {
           print(oss, "(EVWL: ", -sign * eval_entry->wl, ") ", 6, 4);
           print(oss, "(EVN: ", eval_entry->numMembers, ") ", 6);
+
         }
       }
 
@@ -1858,6 +1859,8 @@ void SearchWorker::PickNodesToExtendTask(
         top_utils[i] = -999;
       } 
 
+      float max_weight = 0.0f;
+      Move most_visited_move = Move();
 			
       // Root depth is 1 here, while for GetDrawScore() it's 0-based, that's why
       // the weirdness.
@@ -1872,6 +1875,11 @@ void SearchWorker::PickNodesToExtendTask(
         current_util[index] = q + m_evaluator.GetMUtility(child, q);
 				
         visited[index] = true;
+
+        if (child->GetWeight() > max_weight) {
+          max_weight = child->GetWeight();
+					most_visited_move = child->GetMove();
+        }
 
         // we're only counting visited nodes toward top utils
         // since we only boost visited nodes
@@ -1915,6 +1923,11 @@ void SearchWorker::PickNodesToExtendTask(
         }
       }
 
+      Move rec_move = Move();
+      LowNode* nl = node->GetLowNode();
+
+      if (nl) rec_move = nl->GetEvalEntry()->best_move;
+
 
 			const float puct_mult =
           ComputeExploreFactor(params_, node->GetWeight(), node->GetWL(),
@@ -1949,8 +1962,6 @@ void SearchWorker::PickNodesToExtendTask(
             //else if (cur_iters[idx].GetWL(0.0f) < -0.99) p /= 3;
             //else if (cur_iters[idx].GetWL(0.0f) < -0.95) p /= 2;
 
-
-
             // only boost visited nodes
 						if (visited[idx]) {
               if (util >= min_policy_boost_util_t1) {
@@ -1960,6 +1971,10 @@ void SearchWorker::PickNodesToExtendTask(
                 p = std::max(p, policy_boost_t2);
               }
             }
+
+            if (cur_iters[idx].GetMove() == rec_move && rec_move != most_visited_move) {
+							p = std::max(p, 1.0f);
+						}
 
             
             current_score[idx] =
@@ -2002,7 +2017,7 @@ void SearchWorker::PickNodesToExtendTask(
             // One more loop will get 2 unvisited nodes, which is sufficient to
             // ensure second best is correct. This relies upon the fact that
             // edges are sorted in policy decreasing order.
-            can_exit = true;
+            can_exit = false;
           }
         }
         int new_visits = 0;
@@ -2407,18 +2422,11 @@ bool SearchWorker::MaybeAdjustForTerminalOrTransposition(
     // result and incrementing m.
     EvalEntry* eval_entry = nl->GetEvalEntry();
 
-    if (eval_entry && eval_entry->weight > nl->GetWeight() &&
-        !nl->IsTerminal()) {
-      v = -eval_entry->wl;
-      d = eval_entry->d;
-      m = eval_entry->m + 1;
-      vs = eval_entry->vs;
-    } else {
-      v = -nl->GetWL();
-      d = nl->GetD();
-      m = nl->GetM() + 1;
-      vs = nl->GetVS();
-    }
+    v = -nl->GetWL();
+    d = nl->GetD();
+    m = nl->GetM() + 1;
+    vs = nl->GetVS();
+    
     // When starting at or going through a transposition/terminal, make sure to
     // use the information it has already acquired.
     n_to_fix = n->GetN();
@@ -2454,7 +2462,7 @@ bool SearchWorker::MaybeAdjustForTerminalOrTransposition(
   return false;
 }
 
-void SearchWorker::UpdateEvalEntry(LowNode* ln) REQUIRES(search_->nodes_mutex_) {
+void SearchWorker::UpdateEvalEntry(LowNode* ln, Node* n) REQUIRES(search_->nodes_mutex_) {
   EvalEntry* eval_entry = ln->GetEvalEntry();
   if (eval_entry && ln->GetWeight() > eval_entry->weight) {
     eval_entry->weight = ln->GetWeight();
@@ -2462,6 +2470,20 @@ void SearchWorker::UpdateEvalEntry(LowNode* ln) REQUIRES(search_->nodes_mutex_) 
     eval_entry->m = ln->GetM();
     eval_entry->vs = ln->GetVS();
     eval_entry->wl = ln->GetWL();
+
+
+    float best_eval = -9999;
+    Move best_move = Move();
+    
+    // Find best move to recommend to other nodes
+    for (Node* child : n->VisitedNodes()) {
+      if (child->GetWL() > best_eval) {
+        best_eval = child->GetWL();
+        best_move = child->GetMove();
+      }
+    }
+
+		eval_entry->best_move = best_move;
   }
 }
 
@@ -2571,7 +2593,7 @@ void SearchWorker::DoBackupUpdateSingleNode(
   }
 
   if (nl)
-    UpdateEvalEntry(nl);
+    UpdateEvalEntry(nl, n);
 
   if (nr >= 2) {
     // Three-fold itself has to be handled as a terminal to produce relevant
@@ -2649,7 +2671,7 @@ void SearchWorker::DoBackupUpdateSingleNode(
                             weight_to_fix);
     }
 
-    UpdateEvalEntry(pl);
+    UpdateEvalEntry(pl, p);
     
 
     bool old_update_parent_bounds = update_parent_bounds;

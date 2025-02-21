@@ -268,6 +268,10 @@ class Move {
     return (data_ & ~kCheckMask) == (other.data_ & ~kCheckMask);
   }
 
+  bool operator!=(const Move& other) const {
+    return (data_ & ~kCheckMask) != (other.data_ & ~kCheckMask);
+  }
+
   void Mirror() { data_ ^= 0b111000111000; }
 
   std::string as_string() const {

@@ -238,6 +238,7 @@ struct EvalEntry {
   double m = 0;
   double vs = 0;
   double wl = 0;
+  Move best_move = Move();
   int numMembers = 0;
 };
 
