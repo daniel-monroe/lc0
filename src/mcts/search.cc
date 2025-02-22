@@ -2510,8 +2510,7 @@ void SearchWorker::DoBackupUpdateSingleNode(
 
     if (!nl->IsTwin()) {
       auto it1 = path.crbegin();
-      if (it1 != path.crend()) {
-        it1++;
+      if (it1 != path.crend() && ++it1 != path.crend()) {
         auto [p, pr, pm] = *it1;
         float error = (p->GetV() - p->GetWL());
         wl_corrected += 0.3 * error;
