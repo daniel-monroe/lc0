@@ -2507,10 +2507,18 @@ void SearchWorker::DoBackupUpdateSingleNode(
   if (nl && nl->GetN() == 0) {
 
     float wl_corrected = nl->GetWL();
-    if (use_correction_history && !nl->IsTwin() && !nl->IsTerminal()) {
-      wl_corrected += ch_lambda * ch_delta;
-      wl_corrected = std::clamp(wl_corrected, -1.0f, 1.0f);
+
+    if (!nl->IsTwin()) {
+      auto it1 = path.crbegin();
+      if (it1 != path.crend()) {
+        it1++;
+        auto [p, pr, pm] = *it1;
+        float error = (p->GetV() - p->GetWL());
+        wl_corrected += 0.3 * error;
+        wl_corrected = std::clamp(wl_corrected, -1.0f, 1.0f);
+      }
     }
+
 
     nl->FinalizeScoreUpdate(
        wl_corrected, nl->GetD(), nl->GetM(), nl->GetVS(),
@@ -2541,6 +2549,8 @@ void SearchWorker::DoBackupUpdateSingleNode(
     m = nl->GetM() + 1;
     vs = nl->GetVS();
   }
+
+
 
   // Backup V value up to a root. After 1 visit, V = Q.
   for (auto it = path.crbegin(); it != path.crend();
