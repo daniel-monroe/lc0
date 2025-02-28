@@ -1857,6 +1857,10 @@ void SearchWorker::PickNodesToExtendTask(
       // the weirdness.
       const float draw_score =
           (full_path.size() % 2 == 0) ? odd_draw_score : even_draw_score;
+
+      const float root_eval =
+          search_->root_node_->GetWL() * ((full_path.size() % 2 == 0) ? 1 : -1);
+
       m_evaluator.SetParent(node);
       float visited_pol = 0.0f;
       for (Node* child : node->VisitedNodes()) {
@@ -1953,6 +1957,10 @@ void SearchWorker::PickNodesToExtendTask(
               if (util >= min_policy_boost_util_t2) {
                 p = std::max(p, policy_boost_t2);
               }
+            }
+                                                
+            else if (root_eval > 0 && -node->GetWL() < 0 && -node->GetWL() < root_eval - 0.4f) {
+              p *= 2;
             }
 
             
