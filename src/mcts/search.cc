@@ -1942,7 +1942,7 @@ void SearchWorker::PickNodesToExtendTask(
             //if (cur_iters[idx].GetWL(0.0f) < -0.995) p /= 5;
             //else if (cur_iters[idx].GetWL(0.0f) < -0.99) p /= 3;
             //else if (cur_iters[idx].GetWL(0.0f) < -0.95) p /= 2;
-
+            if (cur_iters[idx].GetWL(0.0f) < -0.98) p /= 2;
 
 
             // only boost visited nodes
