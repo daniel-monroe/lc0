@@ -534,7 +534,7 @@ inline float GetFpu(const SearchParams& params, Node* node, bool is_root_node,
   return params.GetFpuAbsolute(is_root_node)
              ? value
              : fmax(-node->GetQ(-draw_score) -
-                        value * std::sqrt(node->GetVisitedPolicy()), -1.0f);
+                        value, -1.0f);
 }
 
 // Faster version for if visited_policy is readily available already.
