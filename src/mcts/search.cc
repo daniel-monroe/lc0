@@ -1876,7 +1876,7 @@ void SearchWorker::PickNodesToExtendTask(
         int index = child->Index();
         visited_pol += child->GetP();
         float q = child->GetQ(draw_score);
-        current_util[index] = q + m_evaluator.GetMUtility(child, q);
+        current_util[index] = q;
 				
         visited[index] = true;
 
