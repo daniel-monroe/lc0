@@ -564,7 +564,7 @@ inline float ComputeExploreFactor(const SearchParams& params, float weight, floa
   const float extra_factor = ComputeCpuctFactor(params, weight, q, vs, e,
 																					  is_root_node);
 
-  return base_factor * extra_factor ;
+  return base_factor * extra_factor * (1 + fmin(weight / 2000, 0.5f)) ;
 }
 
 
