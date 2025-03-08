@@ -1968,7 +1968,9 @@ void SearchWorker::PickNodesToExtendTask(
                 p = std::max(p, policy_boost_t2);
               }
 
-              if (cur_iters[idx].GetWL(-999.0f) > -node->GetWL()) p *= 1.2;
+              if (cur_iters[idx].GetWL(-999.0f) > -node->GetWL() &&
+                  cur_iters[idx].GetWeight(0.0f) < node->GetWeight() / 2)
+                p *= 1.2;
             }
 
 
