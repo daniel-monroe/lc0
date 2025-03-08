@@ -1952,7 +1952,7 @@ void SearchWorker::PickNodesToExtendTask(
 
             p = ComputePolicyDecay(policy_decay_factor, p);
             // a small hack to reduce policy on bad moves
-            if (p < 0.01f) p /= 3;
+            if (p < 0.01f) p = fmin(p, 0.004f);
             //if (cur_iters[idx].GetWL(0.0f) < -0.995) p /= 5;
             //else if (cur_iters[idx].GetWL(0.0f) < -0.99) p /= 3;
             //else if (cur_iters[idx].GetWL(0.0f) < -0.95) p /= 2;
