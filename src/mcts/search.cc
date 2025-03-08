@@ -1969,7 +1969,7 @@ void SearchWorker::PickNodesToExtendTask(
               }
 
               if (cur_iters[idx].GetWL(-999.0f) > -node->GetWL() &&
-                  cur_iters[idx].GetWeight(0.0f) < node->GetWeight() / 2)
+                  cur_iters[idx].GetWeight() < node->GetWeight() / 2)
                 p *= 1.2;
             }
 
