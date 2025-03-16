@@ -574,7 +574,7 @@ inline float ComputeWeight(const SearchParams& params, float uncertainty) {
   const float coefficient = params.GetUncertaintyWeightingCoefficient();
   const float exponent = params.GetUncertaintyWeightingExponent();
   return fmin(cap, coefficient * pow(uncertainty, exponent)) /
-         (1 + (uncertainty > 0.3f));
+         (1 + (uncertainty > 0.35f));
 }
 
 inline float ComputePolicyDecayFactor(const SearchParams& params, uint32_t N) {
