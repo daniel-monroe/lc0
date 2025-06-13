@@ -308,6 +308,7 @@ class Node {
   float GetTotalWeight() const { return weight_; }
   float GetAvgWeight() const { return weight_ / n_; }
   float GetE() const { return e_; }
+  bool GetBlackToMove() const { return black_to_move_; }
   // return low node's v
   float GetV() const;
   float GetCHDelta() const;
@@ -380,9 +381,13 @@ class Node {
   float GetP() const { return edge_.GetP(); }
   void SetP(float val) { edge_.SetP(val); }
 
+
+
   LowNode* GetLowNode() const { return low_node_; }
 
   void SetLowNode(LowNode* low_node);
+  void SetBlackToMove(bool black_to_move) { black_to_move_ = black_to_move;
+	}
   void UnsetLowNode();
 
   // Debug information about the node.
@@ -469,6 +474,8 @@ class Node {
   GameResult upper_bound_ : 2;
   // Edge was handled as a repetition at some point.
   bool repetition_ : 1;
+
+  bool black_to_move_ = false;
 
 };
 
