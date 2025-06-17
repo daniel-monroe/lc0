@@ -25,16 +25,14 @@
   Program grant you additional permission to convey the resulting work.
 */
 
+#include "benchmark/backendbench.h"
+#include "benchmark/benchmark.h"
 #include "chess/board.h"
 #include "engine.h"
-#include "engine_classic.h"
-#include "search/register.h"
+#include "lc0ctl/describenet.h"
+#include "lc0ctl/leela2onnx.h"
+#include "lc0ctl/onnx2leela.h"
 #include "selfplay/loop.h"
-#include "tools/backendbench.h"
-#include "tools/benchmark.h"
-#include "tools/describenet.h"
-#include "tools/leela2onnx.h"
-#include "tools/onnx2leela.h"
 #include "utils/commandline.h"
 #include "utils/esc_codes.h"
 #include "utils/logging.h"
@@ -65,13 +63,6 @@ int main(int argc, const char** argv) {
     CommandLine::RegisterMode("describenet",
                               "Shows details about the Leela network.");
 
-    for (const std::string_view search_name :
-         SearchManager::Get()->GetSearchNames()) {
-      CommandLine::RegisterMode(
-          std::string(search_name),
-          "Use \"" + std::string(search_name) + "\" search");
-    }
-
     if (CommandLine::ConsumeCommand("selfplay")) {
       // Selfplay mode.
       SelfPlayLoop loop;
@@ -95,39 +86,11 @@ int main(int argc, const char** argv) {
     } else if (CommandLine::ConsumeCommand("describenet")) {
       lczero::DescribeNetworkCmd();
     } else {
-      auto options_parser = std::make_unique<OptionsParser>();
-
-      bool used_new_search = false;
-      for (const std::string_view search_name :
-           SearchManager::Get()->GetSearchNames()) {
-        if (CommandLine::ConsumeCommand(search_name)) {
-          used_new_search = true;
-          SearchFactory* factory =
-              SearchManager::Get()->GetFactoryByName(search_name);
-          factory->PopulateParams(options_parser.get());
-          EngineLoop loop(
-              std::move(options_parser), [factory](UciResponder& uci_responder,
-                                                   const OptionsDict& options) {
-                return std::make_unique<Engine>(
-                    factory->CreateEnvironment(&uci_responder, &options),
-                    options);
-              });
-          loop.RunLoop();
-        }
-      }
-
-      if (!used_new_search) {
-        // Consuming optional "uci" mode.
-        CommandLine::ConsumeCommand("uci");
-        // Ordinary UCI engine.
-        EngineClassic::PopulateOptions(options_parser.get());
-        EngineLoop loop(
-            std::move(options_parser),
-            [](UciResponder& uci_responder, const OptionsDict& options) {
-              return std::make_unique<EngineClassic>(uci_responder, options);
-            });
-        loop.RunLoop();
-      }
+      // Consuming optional "uci" mode.
+      CommandLine::ConsumeCommand("uci");
+      // Ordinary UCI engine.
+      EngineLoop loop;
+      loop.RunLoop();
     }
   } catch (std::exception& e) {
     std::cerr << "Unhandled exception: " << e.what() << std::endl;

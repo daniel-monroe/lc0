@@ -25,14 +25,13 @@
   Program grant you additional permission to convey the resulting work.
 */
 
-#include "tools/benchmark.h"
+#include "benchmark/benchmark.h"
 
 #include <numeric>
 
-#include "neural/shared_params.h"
-#include "search/classic/search.h"
-#include "search/classic/stoppers/factory.h"
-#include "search/classic/stoppers/stoppers.h"
+#include "mcts/search.h"
+#include "mcts/stoppers/factory.h"
+#include "mcts/stoppers/stoppers.h"
 
 namespace lczero {
 namespace {
@@ -50,13 +49,13 @@ const OptionId kNumPositionsId{"num-positions", "",
 
 void Benchmark::Run(bool run_shorter_benchmark) {
   OptionsParser options;
-  SharedBackendParams::Populate(&options);
+  NetworkFactory::PopulateOptions(&options);
   options.Add<IntOption>(kThreadsOptionId, 1, 128) = kDefaultThreads;
-  options.GetMutableDefaultsOptions()->Set(SharedBackendParams::kNNCacheSizeId,
-                                           200000);
-  classic::SearchParams::Populate(&options);
+  options.Add<IntOption>(kNNCacheSizeId, 0, 999999999) = 200000;
+  SearchParams::Populate(&options);
 
   options.Add<IntOption>(kNodesId, -1, 999999999) = -1;
+  options.Add<IntOption>(kMovetimeId, -1, 999999999) = 10000;
   options.Add<StringOption>(kFenId) = "";
   if (run_shorter_benchmark) {
     options.Add<IntOption>(kMovetimeId, -1, 999999999) = 500;
@@ -65,6 +64,7 @@ void Benchmark::Run(bool run_shorter_benchmark) {
     options.Add<IntOption>(kMovetimeId, -1, 999999999) = 10000;
     options.Add<IntOption>(kNumPositionsId, 1, 34) = 34;
   }
+  options.Add<IntOption>(kNumPositionsId, 1, 34) = 34;
 
   if (!options.ProcessAllFlags()) return;
 
@@ -93,26 +93,23 @@ void Benchmark::Run(bool run_shorter_benchmark) {
       std::cout << "\nPosition: " << cnt++ << "/" << testing_positions.size()
                 << " " << position << std::endl;
 
-      auto stopper = std::make_unique<classic::ChainedSearchStopper>();
+      auto stopper = std::make_unique<ChainedSearchStopper>();
       if (movetime > -1) {
-        stopper->AddStopper(
-            std::make_unique<classic::TimeLimitStopper>(movetime));
+        stopper->AddStopper(std::make_unique<TimeLimitStopper>(movetime));
       }
       if (visits > -1) {
-        stopper->AddStopper(
-            std::make_unique<classic::VisitsStopper>(visits, false));
+        stopper->AddStopper(std::make_unique<VisitsStopper>(visits, false));
       }
 
       NNCache cache;
-      cache.SetCapacity(
-          option_dict.Get<int>(SharedBackendParams::kNNCacheSizeId));
+      cache.SetCapacity(option_dict.Get<int>(kNNCacheSizeId));
 
-      classic::NodeTree tree;
+      NodeTree tree = {option_dict};
       tree.ResetToPosition(position, {});
 
       const auto start = std::chrono::steady_clock::now();
-      auto search = std::make_unique<classic::Search>(
-          tree, network.get(),
+      auto search = std::make_unique<Search>(
+          &tree, network.get(),
           std::make_unique<CallbackUciResponder>(
               std::bind(&Benchmark::OnBestMove, this, std::placeholders::_1),
               std::bind(&Benchmark::OnInfo, this, std::placeholders::_1)),
