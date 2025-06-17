@@ -54,6 +54,7 @@ int main(int argc, const char** argv) {
     CommandLine::RegisterMode("uci", "(default) Act as UCI engine");
     CommandLine::RegisterMode("selfplay", "Play games with itself");
     CommandLine::RegisterMode("benchmark", "Quick benchmark");
+    CommandLine::RegisterMode("bench", "Very quick benchmark");
     CommandLine::RegisterMode("backendbench",
                               "Quick benchmark of backend only");
     CommandLine::RegisterMode("leela2onnx", "Convert Leela network to ONNX.");
@@ -67,9 +68,13 @@ int main(int argc, const char** argv) {
       SelfPlayLoop loop;
       loop.RunLoop();
     } else if (CommandLine::ConsumeCommand("benchmark")) {
-      // Benchmark mode.
+      // Benchmark mode, longer version.
       Benchmark benchmark;
       benchmark.Run();
+    } else if (CommandLine::ConsumeCommand("bench")) {
+      // Benchmark mode, shorter version.
+      Benchmark benchmark;
+      benchmark.Run(/*run_shorter_benchmark=*/true);
     } else if (CommandLine::ConsumeCommand("backendbench")) {
       // Backend Benchmark mode.
       BackendBenchmark benchmark;
