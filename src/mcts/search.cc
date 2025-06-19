@@ -1896,7 +1896,7 @@ void SearchWorker::PickNodesToExtendTask(
       float eval_diff =
           node->GetWL() -
           search_->root_node_->GetWL() *
-              (search_->root_node_->GetBlackToMove() == node->GetBlackToMove());
+              (search_->root_node_->GetBlackToMove() == node->GetBlackToMove() ? 1 : -1);
 
       if (node->GetWeight() > 50) {
         puct_mult *= 1 - std::clamp(eval_diff, -0.5f, 0.5f) / 2;
