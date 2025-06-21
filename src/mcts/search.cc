@@ -1899,7 +1899,7 @@ void SearchWorker::PickNodesToExtendTask(
               (search_->root_node_->GetBlackToMove() == node->GetBlackToMove() ? 1 : -1);
 
       if (node->GetWeight() > 50) {
-        puct_mult *= 1 - std::clamp(eval_diff, -0.5f, 0.5f) / 2;
+        puct_mult *= 1 - std::clamp(eval_diff, -0.5f, 0.5f);
       }
 
       int cache_filled_idx = -1;
