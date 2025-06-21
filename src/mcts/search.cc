@@ -628,8 +628,16 @@ std::vector<std::string> Search::GetVerboseStats(Node* node) const {
       print(oss, "(VS: ", n->GetVS(), ") ", 6, 5);
       print(oss, "(E: ", n->GetE(), ") ", 6, 5);
       print(oss, "(BTM: ", n->GetBlackToMove(), ") ", 4, 1);
+      float eval_diff =
+          -n->GetWL() -
+          root_node_->GetWL() *
+              (root_node_->GetBlackToMove() == n->GetBlackToMove()
+                   ? -1
+                   : 1);
+      print(oss, "(Eval Diff: ", eval_diff, ") ", 6, 5);
       LowNode* low_node = n->GetLowNode();
       if (low_node != nullptr) {
+
         CorrHistEntry* cht_entry = dag_->CHTGetOrCreate(low_node->GetCHHash());
 
         print(oss, "(CHW: ", cht_entry->weightSum, ") ", 6, 5);
@@ -1893,13 +1901,15 @@ void SearchWorker::PickNodesToExtendTask(
           ComputeExploreFactor(params_, node->GetWeight(), node->GetWL(),
                                node->GetVS(), node->GetE(), is_root_node);
 
+
+      // we negate 
       float eval_diff =
-          node->GetWL() -
+          -node->GetWL() -
           search_->root_node_->GetWL() *
-              (search_->root_node_->GetBlackToMove() == node->GetBlackToMove() ? 1 : -1);
+              (search_->root_node_->GetBlackToMove() == node->GetBlackToMove() ? -1 : 1);
 
       if (node->GetWeight() > 50) {
-        puct_mult *= 1 + std::clamp(eval_diff, -0.5f, 0.5f);
+        puct_mult *= 1 - std::clamp(eval_diff, -0.5f, 0.5f);
       }
 
       int cache_filled_idx = -1;
