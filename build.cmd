@@ -70,8 +70,6 @@ meson build --backend %backend% --buildtype release -Ddx=%DX12% -Dcudnn=%CUDNN% 
 
 if errorlevel 1 exit /b
 
-pause
-
 cd build
 
 msbuild /m /p:Configuration=Release /p:Platform=x64 /p:WholeProgramOptimization=true ^
