@@ -1902,14 +1902,18 @@ void SearchWorker::PickNodesToExtendTask(
                                node->GetVS(), node->GetE(), is_root_node);
 
 
-      // we negate 
-      float eval_diff =
-          -node->GetWL() -
-          search_->root_node_->GetWL() *
-              (search_->root_node_->GetBlackToMove() == node->GetBlackToMove() ? -1 : 1);
-
-      if (node->GetWeight() > 50) {
-        puct_mult *= 1 - std::clamp(eval_diff, -0.5f, 0.5f);
+      if (params_.GetUseCpuctModulation()) {
+        if (node->GetWeight() > params_.GetCpuctModulationPriorWeight()) {
+          float eval_diff =
+            -node->GetWL() -
+            search_->root_node_->GetWL() *
+                (search_->root_node_->GetBlackToMove() == node->GetBlackToMove()
+                     ? -1
+                     : 1);
+          float bound = params_.GetCpuctModulationBound();
+          float adj = eval_diff * params_.GetCpuctModulationStrength();
+          puct_mult *= 1 - std::clamp(adj, -bound, bound);
+        }
       }
 
       int cache_filled_idx = -1;

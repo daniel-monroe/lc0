@@ -227,6 +227,20 @@ class SearchParams {
   float GetCorrectionHistoryAlpha() const { return kCorrectionHistoryAlpha; }
   float GetCorrectionHistoryLambda() const { return kCorrectionHistoryLambda; }
 
+  float GetCpuctModulationBound() const {
+		return kCpuctModulationBound;
+	}
+  float GetCpuctModulationStrength() const {
+    return kCpuctModulationStrength;
+    }
+  float GetCpuctModulationPriorWeight() const {
+    return kCpuctModulationPriorWeight;
+	}
+  bool GetUseCpuctModulation() const {
+    return kUseCpuctModulation;
+	}
+
+
 
   // Search parameter IDs.
   static const OptionId kMiniBatchSizeId;
@@ -342,6 +356,15 @@ class SearchParams {
   static const OptionId kCorrectionHistoryAlphaId;
   static const OptionId kCorrectionHistoryLambdaId;
 
+  
+  static const OptionId kCpuctModulationBoundId;
+  static const OptionId kCpuctModulationStrengthId;
+  static const OptionId kCpuctModulationPriorWeightId;
+  static const OptionId kUseCpuctModulationId;
+
+
+
+
 
 
  private:
@@ -440,6 +463,11 @@ class SearchParams {
   const bool kUseCorrectionHistory;
   const float kCorrectionHistoryAlpha;
   const float kCorrectionHistoryLambda;
+
+  const float kCpuctModulationBound;
+  const float kCpuctModulationStrength;
+  const float kCpuctModulationPriorWeight;
+  const float kUseCpuctModulation;
 
 
 };

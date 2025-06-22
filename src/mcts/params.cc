@@ -548,6 +548,21 @@ const OptionId SearchParams::kCorrectionHistoryLambdaId{
     "correction-history-lambda", "CorrectionHistoryLambda",
     "Strength of correction history adjustment. [0,1]"};
 	
+const OptionId SearchParams::kCpuctModulationBoundId{
+    "cpuct-modulation-bound", "CpuctModulationBound",
+    "Maximum Cpuct modulation strength. [0,0.5]"};
+const OptionId SearchParams::kCpuctModulationStrengthId{
+    "cpuct-modulation-strength", "CpuctModulationStrength",
+    "Cpuct modulation strength. [0,10]"};
+const OptionId SearchParams::kCpuctModulationPriorWeightId{
+    "cpuct-modulation-prior-weight", "CpuctModulationPriorWeight",
+    "Prior weight for Cpuct modulation. [0,1000]"};
+const OptionId SearchParams::kUseCpuctModulationId{
+    "use-cpuct-modulation", "UseCpuctModulation",
+    "Whether to use Cpuct modulation."};
+
+
+
 
 void SearchParams::Populate(OptionsParser* options) {
   // Here the uci optimized defaults" are set.
@@ -688,13 +703,16 @@ void SearchParams::Populate(OptionsParser* options) {
   options->Add<FloatOption>(kCorrectionHistoryAlphaId, 0, 1) = 1;
   options->Add<FloatOption>(kCorrectionHistoryLambdaId, 0, 1) = 0.3;
 
-
-	
-
-
-
-
   options->Add<BoolOption>(kSearchSpinBackoffId) = false;
+
+  options->Add<FloatOption>(kCpuctModulationBoundId, 0, 0.5) = 0.5;
+  options->Add<FloatOption>(kCpuctModulationStrengthId, 0, 10) = 1;
+  options->Add<FloatOption>(kCpuctModulationPriorWeightId, 0, 1000) = 50;
+  options->Add<BoolOption>(kUseCpuctModulationId) = false;
+
+
+
+
 
   options->HideOption(kNoiseEpsilonId);
   options->HideOption(kNoiseAlphaId);
@@ -855,6 +873,14 @@ SearchParams::SearchParams(const OptionsDict& options)
 
 
       kEasyEvalWeightDecay(options.Get<float>(kEasyEvalWeightDecayId)),
-      kSearchSpinBackoff(options_.Get<bool>(kSearchSpinBackoffId)) {}
+      kSearchSpinBackoff(options_.Get<bool>(kSearchSpinBackoffId)),
+
+      kCpuctModulationBound(options.Get<float>(kCpuctModulationBoundId)),
+      kCpuctModulationStrength(options.Get<float>(kCpuctModulationStrengthId)),
+      kCpuctModulationPriorWeight(
+          options.Get<float>(kCpuctModulationPriorWeightId)),
+      kUseCpuctModulation(options_.Get<bool>(kUseCpuctModulationId))
+{}
+
 
 }  // namespace lczero
