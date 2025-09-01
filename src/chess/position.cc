@@ -145,7 +145,9 @@ uint64_t PositionHistory::HashLast(int positions) const {
     if (!positions--) break;
     hash = HashCat(hash, iter->Hash());
   }
-  return HashCat(hash, Last().GetRule50Ply());
+  int r50 = Last().GetRule50Ply();
+  if (r50 < 64) r50 = (r50 / 8) * 8;
+  return HashCat(hash, r50);
 }
 
 std::string PositionToFen(const Position& pos) {
