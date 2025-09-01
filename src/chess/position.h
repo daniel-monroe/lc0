@@ -145,7 +145,7 @@ class PositionHistory {
   bool IsBlackToMove() const { return Last().IsBlackToMove(); }
 
   // Builds a hash from last X positions.
-  uint64_t HashLast(int positions) const;
+  uint64_t HashLast(int positions, int r50_ply = -1) const;
 
   // Checks for any repetitions since the last time 50 move rule was reset.
   bool DidRepeatSinceLastZeroingMove() const;

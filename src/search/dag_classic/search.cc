@@ -582,6 +582,11 @@ std::vector<std::string> Search::GetVerboseStats(
              node->GetNInFlight(), node->GetVisitedPolicy());
   print_stats(&oss, node);
   print_tail(&oss, node, false);
+
+   oss << std::endl
+      << "Low nodes: " << total_low_nodes_ << " R50 hits: " << r50_hits_
+      << std::endl;
+
   infos.emplace_back(oss.str());
   return infos;
 }
@@ -2007,16 +2012,37 @@ void SearchWorker::ExtendNode(NodeToProcess& picked_node) {
     assert(!tt_iter->second.expired());
     picked_node.is_tt_hit = true;
   } else {
-    picked_node.tt_low_node = std::make_shared<LowNode>(legal_moves);
-    picked_node.nn_queried = true;
-    picked_node.eval->p.resize(legal_moves.size());
-    picked_node.is_cache_hit = computation_->AddInput(
-                                   EvalPosition{
-                                       .pos = history.GetPositions(),
-                                       .legal_moves = legal_moves,
-                                   },
-                                   picked_node.eval->AsPtr()) ==
-                               BackendComputation::FETCHED_IMMEDIATELY;
+
+    int r50 = history.Last().GetRule50Ply();
+    int bs = (r50 < 64) ? 8 : 1;
+    int lo = (r50 / bs) * bs, hi = lo + bs;
+    for (int i = lo; i < hi && i <= r50; i++) {
+      uint64_t hash = history.HashLast(params_.GetCacheHistoryLength() + 1, i);
+      auto cache_iter = search_->tt_->find(hash);
+      if (cache_iter != search_->tt_->end()) {
+        picked_node.tt_low_node = cache_iter->second.lock();
+        if (picked_node.tt_low_node) {
+          assert(!cache_iter->second.expired());
+          picked_node.is_twin_hit = true;
+          picked_node.tt_low_node =
+              std::make_shared<LowNode>(*picked_node.tt_low_node);
+          break;
+        }
+      }
+    }
+
+    if (!picked_node.tt_low_node) {
+      picked_node.tt_low_node = std::make_shared<LowNode>(legal_moves);
+      picked_node.nn_queried = true;
+      picked_node.eval->p.resize(legal_moves.size());
+      picked_node.is_cache_hit = computation_->AddInput(
+                                     EvalPosition{
+                                         .pos = history.GetPositions(),
+                                         .legal_moves = legal_moves,
+                                     },
+                                     picked_node.eval->AsPtr()) ==
+                                 BackendComputation::FETCHED_IMMEDIATELY;
+    }
   }
 }
 
@@ -2052,9 +2078,15 @@ void SearchWorker::FetchSingleNodeResult(NodeToProcess* node_to_process)
     REQUIRES(search_->nodes_mutex_) {
   if (!node_to_process->nn_queried) return;
 
-  if (!node_to_process->is_tt_hit) {
+  if (node_to_process->is_twin_hit) {
     auto [tt_iter, is_tt_miss] = search_->tt_->insert(
         {node_to_process->hash, node_to_process->tt_low_node});
+  }
+
+  if (!node_to_process->is_tt_hit && !node_to_process->is_twin_hit) {
+    auto [tt_iter, is_tt_miss] = search_->tt_->insert(
+        {node_to_process->hash, node_to_process->tt_low_node});
+
     auto wdl_rescale = [&]() {
       if (params_.GetWDLRescaleRatio() != 1.0f ||
           (params_.GetWDLRescaleDiff() != 0.0f &&
@@ -2303,6 +2335,9 @@ void SearchWorker::DoBackupUpdateSingleNode(
       node_to_process.path.size() * node_to_process.multivisit;
   search_->max_depth_ =
       std::max(search_->max_depth_, (uint16_t)node_to_process.path.size());
+  search_->r50_hits_ += node_to_process.multivisit * node_to_process.is_twin_hit;
+  search_->total_low_nodes_ +=
+      node_to_process.multivisit * (node_to_process.is_twin_hit || !node_to_process.is_tt_hit);
 }
 
 bool SearchWorker::MaybeSetBounds(Node* p, float m, uint32_t* n_to_fix,

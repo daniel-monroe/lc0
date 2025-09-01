@@ -194,6 +194,10 @@ class Search {
   uint16_t max_depth_ GUARDED_BY(nodes_mutex_) = 0;
   // Cumulative depth of all paths taken in PickNodetoExtend.
   uint64_t cum_depth_ GUARDED_BY(nodes_mutex_) = 0;
+  uint64_t r50_hits_ GUARDED_BY(nodes_mutex_) = 0;
+  uint64_t total_low_nodes_ GUARDED_BY(nodes_mutex_) = 0;
+
+
 
   std::optional<std::chrono::steady_clock::time_point> nps_start_time_
       GUARDED_BY(counters_mutex_);
@@ -329,6 +333,7 @@ class SearchWorker {
     int maxvisit = 0;
     bool nn_queried = false;
     bool is_tt_hit = false;
+    bool is_twin_hit = false;
     bool is_cache_hit = false;
     bool is_collision = false;
 
