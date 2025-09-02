@@ -246,7 +246,7 @@ option('rescorer',
 
 option('default_search',
        type: 'string',
-       value: '',
+       value: 'dag-preview',
        description: 'Default search algorithm to use, e.g. -Ddefault_search=classic')
 
 option('default_backend',
