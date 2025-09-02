@@ -1730,8 +1730,9 @@ void SearchWorker::PickNodesToExtendTask(
           int nstarted = current_nstarted[idx];
           const float util = current_util[idx];
           if (idx > cache_filled_idx) {
+            bool awful_move = current_pol[idx] < 0.01 && util < -0.98;
             current_score[idx] =
-                current_pol[idx] * puct_mult / (1 + nstarted) + util;
+                current_pol[idx] * puct_mult / (1 + nstarted) / (awful_move ? 4 : 1) + util;
             cache_filled_idx++;
           }
           if (is_root_node) {
