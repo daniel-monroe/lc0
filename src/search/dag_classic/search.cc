@@ -1740,8 +1740,7 @@ void SearchWorker::PickNodesToExtendTask(
           int nstarted = current_nstarted[idx];
           const float util = current_util[idx];
           if (idx > cache_filled_idx) {
-            current_score[idx] =
-                cur_iters[idx].GetP() * puct_mult / (1 + nstarted) + util;
+            current_score[idx] = 0;
             cache_filled_idx++;
           }
           if (is_root_node) {
