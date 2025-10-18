@@ -584,6 +584,8 @@ std::vector<std::string> Search::GetVerboseStats(
              node->GetNInFlight(), node->GetVisitedPolicy());
   print_stats(&oss, node);
   print_tail(&oss, node, false);
+  oss << std::endl << "Playouts: " << total_playouts_
+       << " Decisive playouts: " << total_decisive_playouts_;
   infos.emplace_back(oss.str());
   return infos;
 }
@@ -1743,8 +1745,9 @@ void SearchWorker::PickNodesToExtendTask(
           int nstarted = current_nstarted[idx];
           const float util = current_util[idx];
           if (idx > cache_filled_idx) {
-            current_score[idx] =
-                cur_iters[idx].GetP() * puct_mult / (1 + nstarted) + util;
+            float p = cur_iters[idx].GetP();
+            if (params_.GetBadMovePruning() && p < 0.01 && util < -0.95 && nstarted > 0) p /= 4;
+            current_score[idx] = p * puct_mult / (1 + nstarted) + util;
             cache_filled_idx++;
           }
           if (is_root_node) {
@@ -2226,6 +2229,10 @@ void SearchWorker::DoBackupUpdateSingleNode(
     m = nl->GetM() + 1;
   }
 
+  if (std::abs(v) > 0.95)
+    search_->total_decisive_playouts_ += node_to_process.multivisit;
+
+
   // Backup V value up to a root. After 1 visit, V = Q.
   for (auto it = path.crbegin(); it != path.crend();
        /* ++it in the body */) {
@@ -2302,6 +2309,7 @@ void SearchWorker::DoBackupUpdateSingleNode(
     nm = pm;
   }
   search_->total_playouts_ += node_to_process.multivisit;
+
   search_->cum_depth_ +=
       node_to_process.path.size() * node_to_process.multivisit;
   search_->max_depth_ =

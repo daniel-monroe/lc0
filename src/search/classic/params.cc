@@ -535,13 +535,16 @@ const OptionId SearchParams::kSolidTreeThresholdId{
     "solid-tree-threshold", "SolidTreeThreshold",
     "Only nodes with at least this number of visits will be considered for "
     "solidification for improved cache locality."};
+const OptionId SearchParams::kBadMovePruningId{
+    "bad-move-pruning", "Bad move pruning",
+    "Skip bad moves"};
 
 void BaseSearchParams::Populate(OptionsParser* options) {
   // Here the uci optimized defaults" are set.
   // Many of them are overridden with training specific values in tournament.cc.
   options->Add<IntOption>(kMiniBatchSizeId, 0, 1024) = 0;
-  options->Add<FloatOption>(kCpuctId, 0.0f, 100.0f) = 1.745f;
-  options->Add<FloatOption>(kCpuctAtRootId, 0.0f, 100.0f) = 1.745f;
+  options->Add<FloatOption>(kCpuctId, 0.0f, 100.0f) = 2.9f;
+  options->Add<FloatOption>(kCpuctAtRootId, 0.0f, 100.0f) = 2.9f;
   options->Add<FloatOption>(kCpuctBaseId, 1.0f, 1000000000.0f) = 38739.0f;
   options->Add<FloatOption>(kCpuctBaseAtRootId, 1.0f, 1000000000.0f) = 38739.0f;
   options->Add<FloatOption>(kCpuctFactorId, 0.0f, 1000.0f) = 3.894f;
@@ -562,7 +565,7 @@ void BaseSearchParams::Populate(OptionsParser* options) {
   options->Add<BoolOption>(kLogLiveStatsId) = false;
   std::vector<std::string> fpu_strategy = {"reduction", "absolute"};
   options->Add<ChoiceOption>(kFpuStrategyId, fpu_strategy) = "reduction";
-  options->Add<FloatOption>(kFpuValueId, -100.0f, 100.0f) = 0.330f;
+  options->Add<FloatOption>(kFpuValueId, -100.0f, 100.0f) = 1.0f;
   fpu_strategy.push_back("same");
   options->Add<ChoiceOption>(kFpuStrategyAtRootId, fpu_strategy) = "same";
   options->Add<FloatOption>(kFpuValueAtRootId, -100.0f, 100.0f) = 1.0f;
@@ -626,6 +629,7 @@ void BaseSearchParams::Populate(OptionsParser* options) {
   options->Add<StringOption>(kUCIOpponentId);
   options->Add<FloatOption>(kUCIRatingAdvId, -10000.0f, 10000.0f) = 0.0f;
   options->Add<BoolOption>(kSearchSpinBackoffId) = false;
+  options->Add<BoolOption>(kBadMovePruningId) = false;
 }
 
 void SearchParams::Populate(OptionsParser* options) {
@@ -719,7 +723,8 @@ BaseSearchParams::BaseSearchParams(const OptionsDict& options)
           options.Get<int>(kMaxCollisionVisitsScalingEndId)),
       kMaxCollisionVisitsScalingPower(
           options.Get<float>(kMaxCollisionVisitsScalingPowerId)),
-      kSearchSpinBackoff(options_.Get<bool>(kSearchSpinBackoffId)) {}
+      kSearchSpinBackoff(options_.Get<bool>(kSearchSpinBackoffId)),
+      kBadMovePruning(options_.Get<bool>(kBadMovePruningId)) {}
 
 SearchParams::SearchParams(const OptionsDict& options)
     : BaseSearchParams(options),

@@ -158,6 +158,7 @@ class BaseSearchParams {
     return kMaxCollisionVisitsScalingPower;
   }
   bool GetSearchSpinBackoff() const { return kSearchSpinBackoff; }
+  bool GetBadMovePruning() const { return kBadMovePruning; }
 
   // Search parameter IDs.
   static const OptionId kMiniBatchSizeId;
@@ -226,6 +227,7 @@ class BaseSearchParams {
   static const OptionId kUCIOpponentId;
   static const OptionId kUCIRatingAdvId;
   static const OptionId kSearchSpinBackoffId;
+  static const OptionId kBadMovePruningId;
 
  protected:
   const OptionsDict& options_;
@@ -284,6 +286,7 @@ class BaseSearchParams {
   const int kMaxCollisionVisitsScalingEnd;
   const float kMaxCollisionVisitsScalingPower;
   const bool kSearchSpinBackoff;
+  const bool kBadMovePruning;
 };
 
 class SearchParams : public BaseSearchParams {
