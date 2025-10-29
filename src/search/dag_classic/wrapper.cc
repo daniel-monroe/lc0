@@ -52,18 +52,18 @@ const OptionId kBadMovePolicyThresholdId{
     {.long_flag = "bad-move-policy-threshold",
      .uci_option = "BadMovePolicyThreshold",
      .help_text = "Policy threshold for bad moves in dag-preview search.",
-     .visibility = OptionId::kProOnly}};
+     .visibility = OptionId::kAlwaysVisible}};
 const OptionId kBadMovePolicyFactorId{
     {.long_flag = "bad-move-policy-factor",
      .uci_option = "BadMovePolicyFactor",
      .help_text = "Policy factor for bad moves in dag-preview search.",
-     .visibility = OptionId::kProOnly}};
+     .visibility = OptionId::kAlwaysVisible}};
 const OptionId kStaticExchangeThresholdOptionId{
     {.long_flag = "static-exchange-threshold",
      .uci_option = "StaticExchangeThreshold",
      .help_text =
          "Static exchange evaluation threshold for dag-preview search.",
-     .visibility = OptionId::kProOnly}};
+     .visibility = OptionId::kAlwaysVisible}};
 
 class DagClassicSearch : public SearchBase {
  public:
