@@ -54,6 +54,8 @@ struct EvalResultPtr {
   float* d = nullptr;
   float* m = nullptr;
   std::span<float> p = {};
+  float* cpuct_mult = nullptr;
+  float* fpu_mult = nullptr;
 };
 
 struct EvalResult {
@@ -61,9 +63,11 @@ struct EvalResult {
   float d;
   float m;
   std::vector<float> p;
+  float cpuct_mult = 1.0f;
+  float fpu_mult = 1.0f;
 
   EvalResultPtr AsPtr() {
-    return EvalResultPtr{.q = &q, .d = &d, .m = &m, .p = p};
+    return EvalResultPtr{.q = &q, .d = &d, .m = &m, .p = p, .cpuct_mult = & cpuct_mult, .fpu_mult = &fpu_mult};
   }
 };
 

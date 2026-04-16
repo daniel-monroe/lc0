@@ -519,8 +519,12 @@ std::vector<std::string> Search::GetVerboseStats(
   const bool is_odd_depth = !is_root;
   const bool is_black_to_move = (played_history_.IsBlackToMove() == is_root);
   const float draw_score = GetDrawScore(is_odd_depth);
-  const float fpu = GetFpu(params_, node, is_root, draw_score);
-  const float cpuct = ComputeCpuct(params_, node->GetTotalVisits(), is_root);
+  float fpu = GetFpu(params_, node, is_root, draw_score);
+  float cpuct = ComputeCpuct(params_, node->GetTotalVisits(), is_root);
+  if (auto low_node = node->GetLowNode()) {
+    fpu *= low_node->GetFpuMultiplier();
+    cpuct *= low_node->GetCpuctMultiplier();
+  }
   const float U_coeff =
       cpuct * std::sqrt(std::max(node->GetChildrenVisits(), 1u));
   std::vector<std::tuple<uint32_t, float, EdgeAndNode>> edges;
@@ -899,8 +903,11 @@ EdgeAndNode Search::GetBestRootChildWithTemperature(float temperature) const {
   float max_n = 0.0;
   const float offset = params_.GetTemperatureVisitOffset();
   float max_eval = -1.0f;
-  const float fpu =
+  float fpu =
       GetFpu(params_, root_node_, /* is_root= */ true, draw_score);
+  if (auto low_node = root_node_->GetLowNode()) {
+    fpu *= low_node->GetFpuMultiplier();
+  }
 
   for (auto& edge : root_node_->Edges()) {
     if (!root_move_filter_.empty() &&
@@ -1005,8 +1012,11 @@ void Search::PopulateCommonIterationStats(classic::IterationStats* stats) {
   // If root node hasn't finished first visit, none of this code is safe.
   if (root_node_->GetN() > 0) {
     const auto draw_score = GetDrawScore(true);
-    const float fpu =
+    float fpu =
         GetFpu(params_, root_node_, /* is_root_node */ true, draw_score);
+    if (auto low_node = root_node_->GetLowNode()) {
+      fpu *= low_node->GetFpuMultiplier();
+    }
     float max_q_plus_m = -1000;
     uint64_t max_n = 0;
     bool max_n_has_max_q_plus_m = true;
@@ -1803,14 +1813,21 @@ void SearchWorker::PickNodesToExtendTask(
       }
       const float fpu =
           GetFpu(params_, node, is_root_node, draw_score, visited_pol);
+      float fpu_final = fpu;
+      if (auto low_node = node->GetLowNode()) {
+        fpu_final *= low_node->GetFpuMultiplier();
+      }
       for (int i = 0; i < max_needed; i++) {
         if (current_util[i] == std::numeric_limits<float>::lowest()) {
-          current_util[i] = fpu + m_evaluator.GetDefaultMUtility();
+          current_util[i] = fpu_final + m_evaluator.GetDefaultMUtility();
         }
       }
 
-      const float cpuct =
+      float cpuct =
           ComputeCpuct(params_, node->GetTotalVisits(), is_root_node);
+      if (auto low_node = node->GetLowNode()) {
+        cpuct *= low_node->GetCpuctMultiplier();
+      }
       const float puct_mult =
           cpuct * std::sqrt(std::max(node->GetChildrenVisits(), 1u));
       int cache_filled_idx = -1;

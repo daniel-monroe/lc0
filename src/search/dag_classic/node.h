@@ -531,6 +531,8 @@ class LowNode {
     wl_ = eval->q;
     d_ = eval->d;
     m_ = eval->m;
+    cpuct_multiplier_ = eval->cpuct_mult;
+    fpu_multiplier_ = eval->fpu_mult;
 
     assert(WLDMInvariantsHold());
   }
@@ -617,6 +619,10 @@ class LowNode {
 
   bool WLDMInvariantsHold() const;
 
+  // Get/set multipliers for cpuct and fpu values in search.
+  float GetCpuctMultiplier() const { return cpuct_multiplier_; }
+  float GetFpuMultiplier() const { return fpu_multiplier_; }
+
 #ifndef NDEBUG
   bool Visit(Node::VisitorId::type id);
 #endif
@@ -648,6 +654,9 @@ class LowNode {
   float m_ = 0.0f;
   // How many completed visits this node had.
   uint32_t n_ = 0;
+  // Multipliers for cpuct and fpu values in search.
+  float cpuct_multiplier_ = 1.0f;
+  float fpu_multiplier_ = 1.0f;
 
   // 2 byte fields.
   // Number of parents.
